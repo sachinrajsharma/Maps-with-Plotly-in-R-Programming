@@ -11,7 +11,7 @@ library(plotly)
 
 states = read.csv("state_code.csv") # state code is available at https://worldpopulationreview.com/states/state-abbreviations
 
-
+head(states)
 View(states)
 data = read.csv("Minimum Wage Data.csv")
 head(data)
@@ -22,14 +22,98 @@ new_df = inner_join(data,states) # we are using inner join to join the two dataf
 
 View(new_df)
 
-new_df = select(new_df, Year,State,Wage, Code) # now selcting columns we require which is our final data 
+new_df = select(new_df, Year,Code,Wage, ) # now selcting columns we require which is our final data 
 
-min_wage = plot_geo(new_df, locationmode = 'USA-states',
+
+View(new_df)
+min_wage = plot_geo(new_df, 
+                    locationmode = 'USA-states',
                     frame = ~Year) %>% 
-  add_trace(locations = ~ Code,
-            z = ~Wage,
+  add_trace(locations = ~Code,
+            z = ~Wage, 
             color = ~Wage)
+min_wage
 
-View(min_wage)
+# as this graph is showing  entire world graph, now let us show only USA 
 
+min_wage = plot_geo(new_df, 
+                    locationmode = 'USA-states',
+                    frame = ~Year) %>% 
+  add_trace(locations = ~Code,
+            z = ~Wage, 
+            color = ~Wage) %>% 
+  layout(geo= list(scope = 'usa'))  # this code will show usa only
+min_wage
+
+
+# we can specify the range of wages min to maximum 
+
+min_wage = plot_geo(new_df, 
+                    locationmode = 'USA-states',
+                    frame = ~Year) %>% 
+add_trace(locations = ~Code,
+          z = ~Wage, 
+          zmin = 0,
+          zmax = max(new_df$Wage),
+          color = ~Wage, colorscale = 'Electric') %>% 
+  layout(geo= list(scope = 'usa'))  # this code will show usa only
+min_wage
+
+
+# We need to show statewise wage while hovering over the state, whch we can do by adding the following code 
+# we need to add another column by the name of State by using mutate 
+
+new_df = select(new_df, Year,State, Code,Wage) %>% 
+  mutate(hover = paste0(State, "\n$", Wage ))
+fontStyle = list(
+  family = "DM Sans",
+  size = 15,
+  color = "black"
+)
+label = list(
+  bgcolor = "#EEEEEE",
+  bordercolor = "transparent",
+  font = fontStyle
+)
+
+min_wage = plot_geo(new_df, 
+                    locationmode = 'USA-states',
+                    frame = ~Year) %>% 
+  add_trace(locations = ~Code,
+            z = ~Wage, 
+            zmin = 0,
+            zmax = max(new_df$Wage),
+            color = ~Wage, colorscale = 'Electric',
+            text = ~hover,
+            hoverinfo = 'text') %>% 
+  layout(geo= list(scope = 'usa'),
+         font = list(family = " DM Sans"))  # this code will show usa only
+min_wage
+
+# Now adding labels to the figure  , to add more fonts we use library extrafonts
+
+#install.packages("extrafont")
+
+library(extrafont)
+
+min_wage = plot_geo(new_df, 
+                    locationmode = 'USA-states',
+                    frame = ~Year) %>% 
+  add_trace(locations = ~Code,
+            z = ~Wage, 
+            zmin = 0,
+            zmax = max(new_df$Wage),
+            color = ~Wage, colorscale = 'Electric',
+            text = ~hover,
+            hoverinfo = 'text') %>% 
+  layout(geo= list(scope = 'usa'),
+         font = list(family = "DM Sans"),
+         title = "Minimum Wage in the US \n1968 - 2020") %>% 
+  style(hoverlabel = label) %>%# this is the label which we have mentioned before in the code 
+  config(displayModeBar = FALSE) %>% # THIS WILL REMOVE THE TOOLS BAR 
+  colorbar(tickprefix = "$") # It will show $ sign in wage bar 
+
+
+
+min_wage
 
