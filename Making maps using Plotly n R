@@ -1,0 +1,35 @@
+# importing the data, here we are using minimum wage data avaialable at Kaggle
+# https://www.kaggle.com/lislejoem/us-minimum-wage-by-state-from-1968-to-2017?select=Minimum+Wage+Data.csv
+
+# install package plotly 
+#install.packages("plotly")
+
+# importing libraries 
+
+library(dplyr)
+library(plotly)
+
+states = read.csv("state_code.csv") # state code is available at https://worldpopulationreview.com/states/state-abbreviations
+
+
+View(states)
+data = read.csv("Minimum Wage Data.csv")
+head(data)
+
+data = select(data, Year, State, Wage = State.Minimum.Wage)  # selecting the columns we required
+
+new_df = inner_join(data,states) # we are using inner join to join the two dataframes
+
+View(new_df)
+
+new_df = select(new_df, Year,State,Wage, Code) # now selcting columns we require which is our final data 
+
+min_wage = plot_geo(new_df, locationmode = 'USA-states',
+                    frame = ~Year) %>% 
+  add_trace(locations = ~ Code,
+            z = ~Wage,
+            color = ~Wage)
+
+View(min_wage)
+
+
